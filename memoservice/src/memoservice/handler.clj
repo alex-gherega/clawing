@@ -3,7 +3,8 @@
             [compojure.route :as route]
             [ring.middleware.defaults :refer [wrap-defaults site-defaults]]
             [ring.util.response :as rur]
-            [memoservice.core :as memoco]))
+            [memoservice.core :as memoco]
+            [memoservice.utils :as memoti]))
 
 (defn- spit-url-str [a swap-fn a-fn]
   (let [cix @a]
@@ -18,8 +19,20 @@
        "width=100%>"
        "</iframe>"))
 
+(defn- spit-test-html [a swap-fn a-fn]
+  (let [res (memoti/make-test-question
+             (memoti/fetch-raw-html
+              (spit-url-str a swap-fn a-fn)))
+        qa @memoco/*test-question-answer*]
+    (memoco/swap-test-qa)
+    (if (= qa :question)
+      res
+      (spit-main-html memoco/*current-idx* inc identity))))
+
 (defroutes app-routes
   (GET "/" [] (spit-main-html memoco/*current-idx* inc identity))
+
+  (GET "/test" [] (spit-test-html memoco/*current-idx* identity identity))
 
   (GET "/reverse" [] (spit-main-html memoco/*current-idx* dec identity))
 

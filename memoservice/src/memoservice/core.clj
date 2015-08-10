@@ -1,6 +1,13 @@
 (ns memoservice.core
   (:require [clojure.data.json :as json]))
 
+(def *test-question-answer* (atom :question))
+
+(defn swap-test-qa []
+  (condp = @*test-question-answer*
+    :question (reset! *test-question-answer* :answer)
+    (reset! *test-question-answer* :question)))
+
 (def *current-idx* (atom 1))
 
 (defn- read-questions [path]
