@@ -19,20 +19,37 @@
        "width=100%>"
        "</iframe>"))
 
-(defn- spit-test-html [a swap-fn a-fn]
-  (let [res (memoti/make-test-question
-             (memoti/fetch-raw-html
-              (spit-url-str a swap-fn a-fn)))
+(defn- spit-test-html [a test-fn answ-fn]
+  (let [res (test-fn a)
         qa @memoco/*test-question-answer*]
     (memoco/swap-test-qa)
     (if (= qa :question)
       res
-      (spit-main-html memoco/*current-idx* inc identity))))
+      (answ-fn a))))
+
+(defn- make-test-question [a swap-fn a-fn]
+  (-> (spit-url-str a swap-fn a-fn)
+      memoti/fetch-raw-html
+      memoti/make-test-question))
+
+;; (defn- spit-test-html [a swap-fn a-fn]
+;;   (let [res (memoti/make-test-question
+;;              (memoti/fetch-raw-html
+;;               (spit-url-str a swap-fn a-fn)))
+;;         qa @memoco/*test-question-answer*]
+;;     (memoco/swap-test-qa)
+;;     (if (= qa :question)
+;;       res
+;;       (spit-main-html a inc identity))))
 
 (defroutes app-routes
   (GET "/" [] (spit-main-html memoco/*current-idx* inc identity))
 
-  (GET "/test" [] (spit-test-html memoco/*current-idx* identity identity))
+  (GET "/test" [] (spit-test-html memoco/*current-idx*
+                                  #(make-test-question %1
+                                                       identity
+                                                       identity)
+                                  #(spit-main-html %1 inc identity)))
 
   (GET "/reverse" [] (spit-main-html memoco/*current-idx* dec identity))
 
@@ -43,6 +60,18 @@
   (GET "/mip" [] (spit-main-html memoco/*mip-idxs*
                                  rest
                                  first))
+
+  (GET "/vip/test" [] (spit-test-html memoco/*vip-idxs*
+                                      #(make-test-question %1
+                                                           identity
+                                                           first)
+                                      #(spit-main-html %1 rest first)))
+
+  (GET "/mip/test" [] (spit-test-html memoco/*mip-idxs*
+                                      #(make-test-question %1
+                                                           identity
+                                                           first)
+                                      #(spit-main-html %1 rest first)))
 
   (GET "/reset/vip" []
        (memoco/reset-vip)
