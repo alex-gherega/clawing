@@ -6,3 +6,6 @@
 
 (defn make-test-question [html-question]
   (string/replace html-question "#33FF33" "#FFFFFF"))
+
+(defn contains? [v l]
+  (some #{v} l))

@@ -62,16 +62,28 @@
                                  first))
 
   (GET "/vip/test" [] (spit-test-html memoco/*vip-idxs*
-                                      #(make-test-question %1
+                                      #(make-test-question %
                                                            identity
                                                            first)
-                                      #(spit-main-html %1 rest first)))
+                                      #(spit-main-html % rest first)))
 
   (GET "/mip/test" [] (spit-test-html memoco/*mip-idxs*
-                                      #(make-test-question %1
+                                      #(make-test-question %
                                                            identity
                                                            first)
-                                      #(spit-main-html %1 rest first)))
+                                      #(spit-main-html % rest first)))
+
+  (GET "/others" [] (spit-main-html memoco/*others-idxs*
+                                    #(-> % rest lazy-seq)
+                                    first))
+
+  (GET "/others/test" [] (spit-test-html memoco/*others-idxs*
+                                         #(make-test-question %
+                                                              identity
+                                                              first)
+                                         #(spit-main-html %
+                                                          (fn [a] (-> a rest lazy-seq))
+                                                          first)))
 
   (GET "/reset/vip" []
        (memoco/reset-vip)
@@ -81,6 +93,9 @@
        (memoco/reset-mip)
        (rur/redirect "/mip"))
 
+  (GET "/reset/others" []
+       (memoco/reset-others)
+       (rur/redirect "/others"))
   (GET "/reset/:val" [val]
        (reset! memoco/*current-idx* (read-string val))
        (rur/redirect "/"))
